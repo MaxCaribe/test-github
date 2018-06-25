@@ -1,35 +1,17 @@
-require 'net/http'
-require 'json'
+require './request_helper'
+require './method_definer'
+require './builder'
 
-class User
+class User < RequestHelper
+  GITHUB_URI_FOR_USER = "#{GITHUB_URI}users/".freeze
 
-  def self.from_username username
-    uri = URI.parse "https://api.github.com/users/#{username}"
-    res = Net::HTTP.get uri
-    new JSON.parse(res, symbolize_names: true)
+  include MethodDefiner
+
+  def self.from_username(username)
+    new(get_data(GITHUB_URI_FOR_USER + username))
   end
 
-  def initialize data
-    @data = data
+  def initialize(data)
+    defined_methods(data)
   end
-
-  def login
-    @data[:login]
-  end
-
-  def name
-    @data[:name]
-  end
-
-  def email
-    @data[:email]
-  end
-
-  def followers
-    uri = URI.parse @data[:followers_url]
-    res = Net::HTTP.get uri
-    data = JSON.parse(res, symbolize_names: true)
-    data.map { |d| User.new d }
-  end
-
 end
